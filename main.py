@@ -62,6 +62,10 @@ def logout():
 @login_required
 def add_job():
     form = WorksForm()
+    if form.validate_on_submit() and form.team_leader.data != current_user.id:
+        return render_template('works.html', title='Добавление работы',
+                               form=form, message='Вы можете добавлять работы только от своего имени.')
+
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         job = Jobs()
