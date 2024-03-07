@@ -168,6 +168,30 @@ def jobs_delete(id):
         abort(404)
     return redirect('/jobs')
 
+@app.route('/deps')
+def deps():
+    db_sess = db_session.create_session()
+
+    jobs = db_sess.query(Jobs).all()
+
+    return render_template('jobs.html', jobs=jobs)
+
+@app.route('/add_dep', methods=['GET', 'POST'])
+def add_departament():
+    form = WorksForm()
+
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        dep = DepartForm()
+        dep.title_of_department = form.title_of_department.data
+        dep.chief = form.chief.data
+        dep.members = form.members.data
+        dep.department_email = form.department_email.data
+        db_sess.add(job)
+        db_sess.commit()
+        return redirect('/deps')
+    return render_template('add_d.html', title='Добавление департамента',
+                           form=form)
 
 
 
