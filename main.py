@@ -7,14 +7,22 @@ from data import db_session
 from data.jobs import Jobs
 from data.work_forms import WorksForm
 from data.registration import RegForm
+from data import jobs_api
+from flask_restful import reqparse, abort, Api, Resource
+from data import users_resource
 
 app = Flask(__name__)
+api = Api(app)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 login_manager = LoginManager()
 login_manager.init_app(app)
 
 db_session.global_init('db/mars_explorer.db')
 
+api.add_resource(users_resource.UsersListResource, '/api/v2/user')
+
+# для одного объекта
+api.add_resource(users_resource.UsersResource, '/api/v2/user/<int:user_id>')
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -154,13 +162,14 @@ def edit_work(id):
                            form=form
                            )
 
+
 @app.route('/job_delete/<int:id>', methods=['GET', 'POST'])
 @login_required
 def jobs_delete(id):
     db_sess = db_session.create_session()
     job = db_sess.query(Jobs).filter(Jobs.id == id,
-                                      (Jobs.team_leader == current_user.id) | (current_user.id == 1)
-                                      ).first()
+                                     (Jobs.team_leader == current_user.id) | (current_user.id == 1)
+                                     ).first()
     if job:
         db_sess.delete(job)
         db_sess.commit()
@@ -168,32 +177,7 @@ def jobs_delete(id):
         abort(404)
     return redirect('/jobs')
 
-@app.route('/deps')
-def deps():
-    db_sess = db_session.create_session()
-
-    jobs = db_sess.query(Jobs).all()
-
-    return render_template('jobs.html', jobs=jobs)
-
-@app.route('/add_dep', methods=['GET', 'POST'])
-def add_departament():
-    form = WorksForm()
-
-    if form.validate_on_submit():
-        db_sess = db_session.create_session()
-        dep = DepartForm()
-        dep.title_of_department = form.title_of_department.data
-        dep.chief = form.chief.data
-        dep.members = form.members.data
-        dep.department_email = form.department_email.data
-        db_sess.add(job)
-        db_sess.commit()
-        return redirect('/deps')
-    return render_template('add_d.html', title='Добавление департамента',
-                           form=form)
-
-
 
 if __name__ == '__main__':
-    app.run(port=5000, host='127.0.0.1')
+    app.register_blueprint(jobs_api.blueprint)
+    app.run(port=5050, host='127.0.0.1')
