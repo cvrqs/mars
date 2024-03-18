@@ -1,8 +1,13 @@
 from flask_restful import reqparse, abort, Api, Resource
 from data import db_session
 from data.users import User
-from data import parse_user
+from data.parse_user import parser
 from flask import jsonify
+from werkzeug.security import check_password_hash, generate_password_hash
+
+def set_password(password):
+    hashed_password = generate_password_hash(password)
+    return hashed_password
 
 
 def abort_if_user_not_found(user_id):
@@ -36,8 +41,8 @@ class UsersListResource(Resource):
         users = session.query(User).all()
         print(users)
         return jsonify({'user': [{'id': user.id, 'surname': user.surname, 'name': user.name, 'age': user.age,
-                                 'position': user.position, 'speciality': user.speciality, 'address': user.address,
-                                 'email': user.email} for user in users]})
+                                  'position': user.position, 'speciality': user.speciality, 'address': user.address,
+                                  'email': user.email} for user in users]})
 
     def post(self):
         args = parser.parse_args()
